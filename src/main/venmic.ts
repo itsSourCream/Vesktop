@@ -65,6 +65,21 @@ function getRendererAudioServicePid() {
     return metric?.pid?.toString() ?? "owo";
 }
 
+function getSelfAudioExclusions(): Node[] {
+    const exclusions: Node[] = [];
+
+    for (const proc of app.getAppMetrics()) {
+        if (proc.pid) exclusions.push({ "application.process.id": proc.pid.toString() });
+    }
+
+    for (const name of ["Vesktop", "vesktop", "Discord", "discord"]) {
+        exclusions.push({ "application.name": name });
+        exclusions.push({ "application.process.binary": name });
+    }
+
+    return exclusions;
+}
+
 ipcMain.handle(IpcEvents.VIRT_MIC_LIST, () => {
     const audioPid = getRendererAudioServicePid();
 
@@ -110,7 +125,7 @@ ipcMain.handle(IpcEvents.VIRT_MIC_START_SYSTEM, (_, exclude: Node[]) => {
 
     const data: LinkData = {
         include: [],
-        exclude: [{ "application.process.id": pid }, ...exclude],
+        exclude: [...getSelfAudioExclusions(), ...exclude],
         only_speakers: onlySpeakers,
         ignore_devices: ignoreDevices,
         only_default_speakers: onlyDefaultSpeakers
