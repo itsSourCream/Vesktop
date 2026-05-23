@@ -58,12 +58,11 @@ function obtainVenmic() {
 }
 
 function getRendererAudioServicePid() {
-    return (
-        app
-            .getAppMetrics()
-            .find(proc => proc.name === "Audio Service")
-            ?.pid?.toString() ?? "owo"
-    );
+    const metric = app.getAppMetrics().find(proc => {
+        if ((proc as any).serviceName === "audio") return true;
+        return proc.name?.toLowerCase().includes("audio service");
+    });
+    return metric?.pid?.toString() ?? "owo";
 }
 
 ipcMain.handle(IpcEvents.VIRT_MIC_LIST, () => {
